@@ -426,14 +426,6 @@ namespace num {
         _Out_ Number* result
     )
     {
-        bool isNegative = false;
-
-        if (*p == '-')
-        {
-            isNegative = true;
-            ++p;
-        }
-
         char const* start = p;
 
         int64_t value = 0;
@@ -462,12 +454,6 @@ namespace num {
 
         if (p > start)
         {
-            if (isNegative)
-            {
-                value = -value;
-                numerator = -numerator;
-            }
-
             *result = (denominator == 0) ?
                 MakeNumber(value) :
                 MakeNumber(value + (numerator / denominator));
