@@ -18,12 +18,23 @@ namespace num {
 
     StringRef::Data* StringRef::NewData(_In_reads_(length) char const* source, size_t length)
     {
-        size_t const size = offsetof(Data, text_) + (length + 1) * sizeof(*source);
+        // Maximum length avoid integer overflow when casting to uint32_t or when
+        // computing bufferSize below.
+        constexpr size_t maxLength = std::min<size_t>(
+            UINT32_MAX,
+            (SIZE_MAX / sizeof(*source)) - 1 - offsetof(Data, text_)
+            );
 
-        auto data = static_cast<Data*>(malloc(size));
+        if (length > maxLength)
+        {
+            throw std::bad_alloc();
+        }
+
+        size_t const bufferSize = offsetof(Data, text_) + (length + 1) * sizeof(*source);
+        auto data = static_cast<Data*>(malloc(bufferSize));
 
         data->refCount_ = 0;
-        data->length_ = length;
+        data->length_ = static_cast<uint32_t>(length);
         memcpy(data->text_, source, length * sizeof(*source));
         data->text_[length] = 0;
 
